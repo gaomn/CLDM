@@ -1,9 +1,0 @@
-1,cl,continuous,linear,1,0,12310,10,data_save/run_data/2025-04-12_165223_cl/linear_b10/b=10_MPB_0__OUR.csv
-1,cl,continuous,linear,1,1,12350,50,data_save/run_data/2025-04-12_165223_cl/linear_b50/b=50_MPB_1__OUR.csv
-2,cl,continuous,linear,1,2,123100,100,data_save/run_data/2025-04-12_165223_cl/linear_b100/b=100_MPB_2__OUR.csv
-3,cl,continuous,sin,1,3,12310,10,data_save/run_data/2025-04-12_165223_cl/sin_b10/b=10_MPB_3__OUR.csv
-4,cl,continuous,sin,1,4,12350,50,data_save/run_data/2025-04-12_165223_cl/sin_b50/b=50_MPB_4__OUR.csv
-5,cl,continuous,sin,1,5,123100,100,data_save/run_data/2025-04-12_165223_cl/sin_b100/b=100_MPB_5__OUR.csv
-6,cl,continuous,cir,1,6,12310,10,data_save/run_data/2025-04-12_165223_cl/cir_b10/b=10_MPB_6__OUR.csv
-7,cl,continuous,cir,1,7,12350,50,data_save/run_data/2025-04-12_165223_cl/cir_b50/b=50_MPB_7__OUR.csv
-8,cl,continuous,cir,1,8,123100,100,data_save/run_data/2025-04-12_165223_cl/cir_b100/b=100_MPB_8__OUR.csv
