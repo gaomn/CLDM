@@ -1,0 +1,249 @@
+# -*- coding: UTF-8 -*-
+# @Date    :2024/1/15 21:24
+# @Author  :高猛
+# @Project :code_cl_test20240109 
+# @File    :main_test.py
+# @IDE     :PyCharm
+import copy
+import shutil
+import pickle
+from utils.draw import *
+from model_test.utils import *
+from utils.file import file_init
+from dtp_base.configs import set_param
+from dtp_base.demo import Our_method, Optimal, PSO_only, SQL_, SQL_0
+import os
+from datetime import datetime
+import time
+import multiprocessing as mp
+
+
+def run_data():
+    t_start = time.time()
+    file_init()
+    args = set_param()
+    name_time = str(datetime.now().strftime("%Y-%m-%d_%H%M%S"))
+    num_cores = int(mp.cpu_count())
+    use_cores = int(num_cores - 8)
+    print(f"本地计算机有 {num_cores} 核心, 本项目使用 {use_cores} 核心")
+    pool = mp.Pool(use_cores)
+
+    sampler_list = []
+    id_dict = {}
+    sample_id = 0
+    data_save_path = f'data_save/run_data/{name_time}_{args.mode}'
+    if not os.path.exists(data_save_path):
+        os.mkdir(data_save_path)
+    for k_means_center in args.k_means_center_list:
+        save_path1 = f'{data_save_path}/k={k_means_center}'
+        if not os.path.exists(save_path1):
+            os.mkdir(save_path1)
+        for peak_num in args.peak_num_list:
+            for bt_change in args.bt_change_list:
+                save_path2 = f'{save_path1}/{bt_change[:3]}_{peak_num}'
+                if not os.path.exists(save_path2):
+                    os.mkdir(save_path2)
+
+                for bt_type in args.bt_type_list:
+                    for b in args.b_list:
+                        rand_seed = int('123' + str(b))
+
+                        args.k_means_center = k_means_center
+                        args.peak_num = peak_num
+                        args.bt_change = bt_change
+                        args.rand_seed = rand_seed
+                        args.sample_id = sample_id
+                        args.bt_type = bt_type
+                        args.time_fac = b
+
+                        with open(save_path2 + '/parameters.txt', 'w') as file:
+                            for arg, value in vars(args).items():
+                                file.write(f'{arg}: {value}\n')
+
+                        save_path = f'{save_path2}/{bt_type}_b{int(b)}'
+                        if not os.path.exists(save_path):
+                            os.mkdir(save_path)
+
+                        id_dict[sample_id] = f'{bt_type[0]}_{b}'
+
+                        if args.using_multiprocessing:
+                            for i in range(args.sample_num):
+                                # rand_seed = int('1' + str(b) + str(i))
+                                rand_seed = int('123' + str(b))
+
+                                sampler_list.append(
+                                    pool.apply_async(run_one, args=(sample_id, save_path, copy.deepcopy(args))))
+                                sample_id += 1
+                        else:
+                            for i in range(args.sample_num):
+                                # rand_seed = int('1' + str(b) + str(i))
+                                rand_seed = int('123' + str(b))
+                                run_one(sample_id, save_path, copy.deepcopy(args))
+                                sample_id += 1
+
+
+    # with open('id1.pkl', 'wb') as file:
+    #     pickle.dump(id_dict, file)
+    # raise
+    # 执行采样
+    data_dict = {}
+    if args.using_multiprocessing:
+        # sample
+        for one_sampler in sampler_list:
+            data_dict.update(one_sampler.get())
+
+    t_all = time.time() - t_start
+    print(f'\n=================================================================================\n'
+          f'(using_multiprocessing == {args.using_multiprocessing})  All time is '
+          f'{round(t_all/3600., 2)} hours ---- {round(t_all/60., 2)} min\n'
+          f'=================================================================================\n')
+
+    return f'{name_time}_{args.mode}'
+
+
+def run_one(sample_id, save_path, args):
+    # info_dict = {
+    #     'sample_id': sample_id,
+    #     'algo_mode': args.mode,
+    #     'mpb_mode': args.bt_change,
+    #     'bt_mode': args.bt_type,
+    #     'peak_num': args.peak_num,
+    #     'rand_seed': args.rand_seed,
+    #     'time_fac': args.time_fac,}
+    # print(info_dict)
+    t_pso = 0
+    t_max = 0
+    t_poc = 0
+    t_all = 0
+
+    f_n = f'{save_path}/b={int(args.time_fac)}_MPB_{sample_id}_'
+    fig_path = f'data_save/other_fig/{args.mode}'
+    if not os.path.exists(fig_path):
+        os.mkdir(fig_path)
+    save_path1 = f'data_save/other_fig/{args.mode}/step_fig'
+    if not os.path.exists(save_path1):
+        os.mkdir(save_path1)
+    args.fig_filename = save_path1
+    save_path2 = f'data_save/other_fig/{args.mode}/some_data'
+    if not os.path.exists(save_path2):
+        os.mkdir(save_path2)
+    args.test_filename = save_path2
+
+    t0 = time.time()
+    args.filename = f_n + '_OUR.csv'
+    x_tra, f_this, f_next = Our_method(args)
+
+    t1 = time.time()
+    args.filename = f_n + '_OPT.csv'
+    Optimal(args)
+
+    t2 = time.time()
+    args.filename = f_n + '_PSO.csv'
+    PSO_only(args)
+
+    t3 = time.time()
+
+    t_poc += float(t1 - t0)
+    t_max += float(t2 - t1)
+    t_pso += float(t3 - t2)
+    t_all += float(t3 - t0)
+
+    info_dict = {
+        'algo_mode': args.mode,
+        'mpb_mode': args.bt_change,
+        'bt_mode': args.bt_type,
+        'peak_num': args.peak_num,
+        'sample_id': sample_id,
+        'rand_seed': args.rand_seed,
+        'time_fac': args.time_fac,
+        'save_path': f_n + '_OUR.csv'}
+
+    log_path = 'data_save/other_data/save_log.txt'
+
+    with open(log_path, 'a', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=['Index'] + list(info_dict.keys()))
+
+        if not os.path.exists(log_path):
+            writer.writeheader()
+            row_dict = {'Index': 0, **info_dict}  # 以索引0写入第一行数据
+            writer.writerow(row_dict)
+        else:
+            with open(log_path, 'r') as f:
+                reader = csv.reader(f)
+                lines = list(reader)
+                last_index = int(lines[-1][0]) if len(lines) > 1 else 0
+                row_dict = {'Index': last_index + 1, **info_dict}  # 使用下一个索引值
+                writer.writerow(row_dict)
+
+    print(f'===========================================================\n'
+          f'sample_id: {sample_id}    '
+          f't_our: {round(t_poc, 3)}   '
+          f't_max: {round(t_max, 3)}   '
+          f't_pso: {round(t_pso, 3)}   '
+          f't_all: {round(t_all, 3)}   ')
+    return {sample_id: [x_tra, f_this, f_next]}
+
+
+def draw_fit(filename='KD2'):
+    args = set_param()
+    for bt_type in args.bt_type_list:
+        for b in args.b_list:
+            save_path = f'data_save/fig_data/{filename}'
+            read_path = f'data_save/run_data/{filename}/{bt_type}_b{int(b)}'
+            if not os.path.exists(save_path):
+                os.mkdir(save_path)
+            draw_from_file(f=read_path, b=int(b), x=f'{bt_type}_b={int(b)}',
+                           save_path=f'{save_path}/{bt_type}_b={int(b)}.png', title=filename, m=args.max_step)
+
+
+if __name__ == '__main__':
+
+    # with open('data12.pkl', 'rb') as file:
+    #     loaded_dict = pickle.load(file)
+    # with open('id12.pkl', 'rb') as file:
+    #     loaded_id = pickle.load(file)
+    #
+    # plot_all(loaded_dict, loaded_id)
+
+    # name_lst = ['p1_dis_lsc_b=0-100', 'p1_con_lsc_b=0-100',
+    #             'p10_dis_lsc_b=0-100', 'p10_con_lsc_b=0-100']
+    # name1_ = 'p10_con_lsc_b=0-100'
+    # name2_ = 'p10_dis_lsc_b=0-100'
+    # with open(f'data_{name1_}.pkl', 'rb') as file:
+    #     loaded_dict1 = pickle.load(file)
+    # with open(f'id_{name1_}.pkl', 'rb') as file:
+    #     loaded_id1 = pickle.load(file)
+    # with open(f'data_{name2_}.pkl', 'rb') as file:
+    #     loaded_dict2 = pickle.load(file)
+    # with open(f'id_{name2_}.pkl', 'rb') as file:
+    #     loaded_id2 = pickle.load(file)
+    #
+    # plot_all2(loaded_dict1, loaded_dict2, loaded_id1, loaded_id2)
+    # plot_all(loaded_dict, loaded_id)
+
+    # name_lst = ['p1_dis_lsc_b=0-100', 'p1_con_lsc_b=0-100',
+    #             'p10_dis_lsc_b=0-100', 'p10_con_lsc_b=0-100']
+    #
+    # data_lst = []
+    # id_lst = []
+    # for name in name_lst:
+    #     with open(f'data_{name}.pkl', 'rb') as file:
+    #         data_lst.append(pickle.load(file))
+    #     with open(f'id_{name}.pkl', 'rb') as file:
+    #         id_lst.append(pickle.load(file))
+    #
+    # plot_all3(data_lst, id_lst)
+
+
+    mode = run_data()
+    draw_fit(mode)
+
+
+
+
+
+
+
+
+
+
