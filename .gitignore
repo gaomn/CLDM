@@ -1,0 +1,52 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Python cache/bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+.tox/
+
+# Virtual env
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Editors/IDE
+.idea/
+.vscode/
+*.iml
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Logs
+logs/
+*.log
+
+# Project data and generated artifacts
+# (ignore at all levels)
+**/data_save/
+**/run_data/
+**/fig_data/
+**/other_fig/
+**/other_data/
+
+# Binary bundles
+*.zip
+*.whl
+
+# Misc
+*.bak
+
