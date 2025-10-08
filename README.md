@@ -1,6 +1,6 @@
 # 基于对比学习的动态时链优化决策方法
 
-[![IEEE](https://img.shields.io/badge/IEEE-SMAC-blue.svg)](https://doi.org/10.1109/TSMC.2025.3611797)
+[![IEEE](https://img.shields.io/badge/IEEE-TSMC-blue.svg)](https://doi.org/10.1109/TSMC.2025.3611797)
 [![DOI](https://img.shields.io/badge/DOI-10.1109/TSMC.2025.3611797-blue.svg)](https://doi.org/10.1109/TSMC.2025.3611797)
 [![GitHub](https://img.shields.io/badge/GitHub-开源项目-green.svg)](https://github.com/gaomn/CLDM)
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
