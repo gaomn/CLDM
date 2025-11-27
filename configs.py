@@ -12,7 +12,7 @@ def set_param():
 
     ''' mpb args '''
     parser.add_argument('--max_step', default=100, type=float)
-    parser.add_argument('--x_dim', default=200, type=int)
+    parser.add_argument('--x_dim', default=10, type=int)
     parser.add_argument('--x_bound', default=5., type=float)
     parser.add_argument('--peak_h', default=50, type=int)
     parser.add_argument('--peak_w', default=5, type=int)
@@ -51,4 +51,5 @@ def set_param():
 
     args = parser.parse_args()
     return args
+
 
